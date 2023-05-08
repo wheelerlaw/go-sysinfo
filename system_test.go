@@ -20,6 +20,7 @@ package sysinfo
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/fs"
 	"os"
 	osUser "os/user"
@@ -308,4 +309,16 @@ func TestProcesses(t *testing.T) {
 			info.PID, info.Name, info.Exe, info.Args, info.PPID, info.CWD,
 			info.StartTime)
 	}
+}
+
+func Test_DemoBuggyKernel(t *testing.T) {
+	// Find the PID for any process that has args (a process you have permissions for) and set it below.
+	// This will fail in the kern_procargs2 function in process_darwin.go file on line 214, because the argc
+	// is >1 but the args returned from the syscall is empty.
+	proc, _ := Process(169)
+	procInfo, err := proc.Info()
+	if err != nil {
+		fmt.Printf("%s", err.Error())
+	}
+	println(procInfo.Args)
 }
